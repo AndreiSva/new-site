@@ -55,7 +55,6 @@ class FallingObject extends GameObject {
     this.addUpdateCallback((dt) => {
       this.x += this.xvel * dt;
       this.y += this.yvel * dt;
-      // this.yvel -= 98 * dt;
     });
   }
 }
@@ -72,7 +71,7 @@ class Ball extends FallingObject {
     const material = new THREE.MeshBasicMaterial({ color: 0x000000 });
     this.mesh = new THREE.Mesh(geometry, material);
 
-    this.addUpdateCallback((dt) => this.updateMesh());
+    this.addUpdateCallback(() => this.updateMesh());
   }
 
   updateMesh() {
@@ -95,31 +94,28 @@ class BouncyBallsManager extends Actor {
     this.#sizeX = sizeX;
     this.#sizeY = sizeY;
     this.#gameState = gameState;
-    super.addUpdateCallback((dt) => this.bounceCheck(dt));
+    super.addUpdateCallback(() => this.bounceCheck());
   }
 
-  bounceCheck(dt: number) {
+  bounceCheck() {
     for (let i = 0; i < this.#balls.length; i++) {
-      let iBall = this.#balls[i];
-      for (let j = i + 1; j < this.#balls.length; j++) {
-        let jBall = this.#balls[j];
-      }
+      let currentBall = this.#balls[i];
 
       const WINDOW_BUFFER = 50;
-      if (iBall.x + iBall.r > this.#sizeX + WINDOW_BUFFER) {
-        iBall.xvel *= -1;
-        iBall.x = this.#sizeX + WINDOW_BUFFER - iBall.r;
-      } else if (iBall.x - iBall.r < 0 - WINDOW_BUFFER) {
-        iBall.xvel *= -1;
-        iBall.x = iBall.r - WINDOW_BUFFER;
+      if (currentBall.x + currentBall.r > this.#sizeX + WINDOW_BUFFER) {
+        currentBall.xvel *= -1;
+        currentBall.x = this.#sizeX + WINDOW_BUFFER - currentBall.r;
+      } else if (currentBall.x - currentBall.r < 0 - WINDOW_BUFFER) {
+        currentBall.xvel *= -1;
+        currentBall.x = currentBall.r - WINDOW_BUFFER;
       }
 
-      if (iBall.y + iBall.r > this.#sizeY + WINDOW_BUFFER) {
-        iBall.yvel *= -1;
-        iBall.y = this.#sizeY + WINDOW_BUFFER - iBall.r;
-      } else if (iBall.y - iBall.r < 0 - WINDOW_BUFFER) {
-        iBall.yvel *= -1;
-        iBall.y = iBall.r - WINDOW_BUFFER;
+      if (currentBall.y + currentBall.r > this.#sizeY + WINDOW_BUFFER) {
+        currentBall.yvel *= -1;
+        currentBall.y = this.#sizeY + WINDOW_BUFFER - currentBall.r;
+      } else if (currentBall.y - currentBall.r < 0 - WINDOW_BUFFER) {
+        currentBall.yvel *= -1;
+        currentBall.y = currentBall.r - WINDOW_BUFFER;
       }
     }
   }
@@ -151,27 +147,27 @@ class BouncyBallsManager extends Actor {
 
 export function initGraphics() {
   const scene = new THREE.Scene();
-  const camera = new THREE.OrthographicCamera(0, window.innerWidth, window.innerHeight, 0, -1000, 1000);
-
-  camera.position.set(0, 0, 1);
-  camera.updateProjectionMatrix();
-
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-
-  renderer.setClearColor(0xffffff);
-
-  let canvas: HTMLCanvasElement = renderer.domElement;
-  canvas.style.position = "absolute";
-  canvas.style.zIndex = "-1";
-  document.body.appendChild(canvas);
 
   const gameState = new GameState(scene);
   const ballManager = new BouncyBallsManager(gameState, window.innerWidth, window.innerHeight);
   gameState.addActor(ballManager);
 
-  const NUM_BALLS = 100;
-  for (let i = 0; i < NUM_BALLS; i++) {
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setClearColor(0xffffff);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const camera = new THREE.OrthographicCamera(0, window.innerWidth, window.innerHeight, 0, -1000, 1000);
+  camera.position.set(0, 0, 1);
+  camera.updateProjectionMatrix();
+
+  let canvas: HTMLCanvasElement = renderer.domElement;
+  canvas.style.position = "absolute";
+  canvas.style.zIndex = "-1";
+  canvas.style.top = "0px";
+  document.body.appendChild(canvas);
+
+  const numBalls = (window.innerWidth * window.innerHeight) / 20000;
+  for (let i = 0; i < numBalls; i++) {
     ballManager.addRandomBall();
   }
 
