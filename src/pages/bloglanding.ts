@@ -1,4 +1,4 @@
-import { marked } from "marked";
+// import { marked } from "marked";
 
 import { Page, loadTemplate } from "../router";
 import "../components/navigationbar";
@@ -17,7 +17,7 @@ export class BlogLandingPage extends Page {
         const m = import.meta.glob("../blog/*.md", { as: "raw" });
         console.log(m);
         Object.keys(m).forEach((blogPath) => {
-          (m[blogPath]()).then((postContent) => {
+          (m[blogPath]()).then(() => {
             const blogTitle = blogPath.split("/").at(-1)!.split(".").at(0);
 
             // TODO: Replace this with a component

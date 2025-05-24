@@ -1,4 +1,4 @@
-import { Heading } from "./heading";
+// import { Heading } from "./heading";
 
 export class Card extends HTMLElement {
   constructor() {
