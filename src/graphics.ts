@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 
+import basicVertexShader from "./shaders/basic.v.glsl?raw";
+import metaballsFragmentShader from "./shaders/metaballs.f.glsl?raw";
+
 class Actor {
 #updateCalls: ((dt: number) => void)[] = [];
   addUpdateCallback(newCallBack: (dt: number) => void) {
@@ -36,6 +39,7 @@ class GameState {
 }
 
 class GameObject extends Actor {
+  pos: THREE.Vector2 = new THREE.Vector2(0, 0);
   x: number = 0;
   y: number = 0;
   constructor(x: number, y: number) {
@@ -45,8 +49,9 @@ class GameObject extends Actor {
   }
 }
 
-class FallingObject extends GameObject {
+class MovingObject extends GameObject {
   weight: number = 1;
+  vel: THREE.Vector2 = new THREE.Vector2(0, 0);
   xvel: number = 0;
   yvel: number = 0;
   constructor(x: number, y: number, weight: number) {
@@ -59,24 +64,11 @@ class FallingObject extends GameObject {
   }
 }
 
-class Ball extends FallingObject {
-  mesh: THREE.Mesh;
+class Ball extends MovingObject {
   r: number
   constructor(x: number, y: number, r: number) {
     super(x, y, 1);
     this.r = r;
-
-    const SEGMENTS: number = 32;
-    const geometry = new THREE.CircleGeometry(r, SEGMENTS);
-    const material = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    this.mesh = new THREE.Mesh(geometry, material);
-
-    this.addUpdateCallback(() => this.updateMesh());
-  }
-
-  updateMesh() {
-    this.mesh.position.x = this.x;
-    this.mesh.position.y = this.y;
   }
 
   collidingWith(other: Ball) {
@@ -88,13 +80,54 @@ class BouncyBallsManager extends Actor {
 #balls: Ball[] = [];
 #sizeX: number;
 #sizeY: number;
+  mesh: THREE.Mesh;
+#material: THREE.ShaderMaterial;
 #gameState: GameState;
-  constructor(gameState: GameState, sizeX: number, sizeY: number) {
+#maxBalls: number;
+  constructor(gameState: GameState, sizeX: number, sizeY: number, maxBalls: number = 1000) {
     super();
     this.#sizeX = sizeX;
     this.#sizeY = sizeY;
+    this.#maxBalls = maxBalls;
+
+    const ballsUniformArray = Array.from(
+      { length: maxBalls },
+      () => new THREE.Vector3(0, 0, 0)
+    );
+
+    const geometry = new THREE.PlaneGeometry(sizeX, sizeY);
+    this.#material = new THREE.ShaderMaterial({
+      glslVersion: THREE.GLSL3,
+      uniforms: {
+        balls: { value: ballsUniformArray },
+        size: { value: new THREE.Vector2(sizeX, sizeY) }
+      },
+
+      defines: {
+        MAX_BALLS: maxBalls,
+      },
+
+      vertexShader: basicVertexShader,
+      fragmentShader:metaballsFragmentShader
+    });
+
+    this.mesh = new THREE.Mesh(geometry, this.#material);
+    this.mesh.position.x = this.#sizeX / 2;
+    this.mesh.position.y = this.#sizeY / 2
+
     this.#gameState = gameState;
     super.addUpdateCallback(() => this.bounceCheck());
+    super.addUpdateCallback(() => this.updateMaterial());
+  }
+
+  updateMaterial() {
+    for (let i = 0; i < this.#balls.length; i++) {
+      let currentBall: THREE.Vector3 = this.#material.uniforms.balls.value[i];
+
+      currentBall.x = this.#balls[i].x;
+      currentBall.y = this.#balls[i].y;
+      currentBall.z = this.#balls[i].r;
+    }
   }
 
   bounceCheck() {
@@ -121,9 +154,12 @@ class BouncyBallsManager extends Actor {
   }
 
   addBall(ball: Ball) {
+    if (this.#balls.length >= this.#maxBalls) {
+      return;
+    }
+
     this.#balls.push(ball);
     this.#gameState.addActor(ball);
-    this.#gameState.scene.add(ball.mesh);
   }
 
   addRandomBall() {
@@ -151,6 +187,7 @@ export function initGraphics() {
   const gameState = new GameState(scene);
   const ballManager = new BouncyBallsManager(gameState, window.innerWidth, window.innerHeight);
   gameState.addActor(ballManager);
+  gameState.scene.add(ballManager.mesh);
 
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setClearColor(0xffffff);

@@ -11,7 +11,7 @@ export class Page {
 #elements: Element[] = [];
 #displayCallbacks: (() => void) [] = [];
   async display() {
-    console.log(`displaying page...`)
+    console.log(`displaying page...`);
 
     this.#elements = [];
     await this.buildPage();
@@ -20,7 +20,7 @@ export class Page {
     appDiv.replaceChildren(...this.#elements);
     this.#displayCallbacks.forEach((cb) => {
       cb();
-    })
+    });
   }
 
   async buildPage() {
@@ -62,6 +62,7 @@ class Router {
     console.log(`routing... ${link}`);
     if (link.length != 0 && !link.startsWith("/")) {
       window.location.href = link;
+      return;
     }
 
     let page: Page;
