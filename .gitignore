@@ -13,6 +13,7 @@ dist-ssr
 *.local
 
 \#*\#
+*.\~undo-tree\~
 
 # Editor directories and files
 .vscode/*
