@@ -3,10 +3,9 @@
   line-height: 1.5;
   font-weight: 400;
 
-  --bg: #242424;
-  --fg: rgba(255, 255, 255, 0.87);
+  --fg: #242424;
+  --bg: rgba(255, 255, 255, 1);
 
-  color-scheme: light dark;
   color: var(--fg);
   background-color: var(--bg);
 
@@ -91,7 +90,7 @@ h1 {
 .card {
   box-sizing: border-box;
   padding: 1em;
-  background-color: white;
+  background-color: var(--bg);
   margin-bottom: 1em;
   border: 2px solid;
   border-color: grey;
