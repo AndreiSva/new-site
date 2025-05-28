@@ -16,8 +16,8 @@
 }
 
 ::selection {
-  color: var(--fg);
-  background-color: var(--bg);
+  color: var(--bg);
+  background-color: var(--fg);
 }
 
 a {
