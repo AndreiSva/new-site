@@ -1,4 +1,4 @@
-# andrei.rm-r.org (réprise)
+# andrei.rm-r.org (reprise)
 
 This is my new website. It is a fully static CSR app written in vanilla TS, using Vite as the bundler. Thus, building it is as simple as running:
 
